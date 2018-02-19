@@ -2,16 +2,16 @@ import React from "react";
 import classNames from "classnames";
 import "./Spreadsheet.css";
 
-const NUM_ROWS = 40;
+const NUM_ROWS = 26;
 const NUM_COLS = 10;
 
 export class Spreadsheet extends React.Component {
   constructor(props) {
     super(props);
     let sheet = [];
-    for (let i = 0; i <= NUM_ROWS; i += 1) {
+    for (let i = 0; i < NUM_ROWS; i += 1) {
       sheet[i] = [];
-      for (let j = 0; j <= NUM_COLS; j += 1) {
+      for (let j = 0; j < NUM_COLS; j += 1) {
         sheet[i].push("");
       }
     }
@@ -76,12 +76,25 @@ export class Spreadsheet extends React.Component {
     return e => this.setState({ focused: [row, col] });
   };
 
+  rowToLetter = row => {
+    return String.fromCharCode(row + 65);
+  };
+
   render() {
     const { focused } = this.state;
     const rows = [];
-    for (let i = 0; i <= NUM_ROWS; i += 1) {
+    const colLabels = [];
+    for (let i = 0; i < NUM_ROWS; i += 1) {
       const cols = [];
-      for (let j = 0; j <= NUM_COLS; j += 1) {
+      for (let j = 0; j < NUM_COLS; j += 1) {
+        if (i === 0) {
+          colLabels.push(
+            <span className="colLabel label" key={j}>
+              {j + 1}
+            </span>
+          );
+        }
+
         const isFocused = focused && i === focused[0] && j === focused[1];
         const shouldEval = !isFocused;
         const cellValue = this.getValue(i, j, shouldEval);
@@ -101,11 +114,17 @@ export class Spreadsheet extends React.Component {
       }
       rows.push(
         <div className="row" key={i}>
+          <span className="rowLabel label">{this.rowToLetter(i)}</span>
           {cols}
         </div>
       );
     }
-    return <div className="Spreadsheet">{rows}</div>;
+    return (
+      <div className="Spreadsheet">
+        <div className="columnLabels">{colLabels}</div>
+        {rows}
+      </div>
+    );
   }
 }
 

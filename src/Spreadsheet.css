@@ -1,11 +1,14 @@
 .Spreadsheet {
   margin: 1em;
   --border: 1px solid #ddd;
+  --cellWidth: 60px;
+  --cellHeight: 20px;
+  --labelWidth: 35px;
 }
 
 .Spreadsheet .row input.col {
-  width: 60px;
-  height: 20px;
+  width: var(--cellWidth);
+  height: var(--cellHeight);
   margin: 0;
   padding: 0;
   outline: none;
@@ -16,11 +19,12 @@
   border-left: none;
 }
 
-.Spreadsheet .row:first-child input.col {
+.Spreadsheet div:nth-child(2) input.col {
+  /* 2nd child: first row of cells */
   border-top: var(--border);
 }
 
-.Spreadsheet .row input.col:first-child {
+.Spreadsheet .row input.col:first-of-type {
   border-left: var(--border);
 }
 
@@ -30,4 +34,27 @@
 
 .Spreadsheet .row input.col.formulaError {
   background-color: #f9abab;
+}
+
+.Spreadsheet .label {
+  box-sizing: border-box;
+  background-color: #efefef;
+  font-size: 12px;
+  line-height: var(--cellHeight);
+}
+
+.Spreadsheet .row .rowLabel {
+  display: inline-block;
+  width: var(--labelWidth);
+  text-align: center;
+}
+
+.Spreadsheet .columnLabels {
+  margin-left: var(--labelWidth);
+}
+
+.Spreadsheet .columnLabels .colLabel {
+  display: inline-block;
+  width: var(--cellWidth);
+  text-align: center;
 }
