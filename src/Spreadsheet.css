@@ -1,0 +1,33 @@
+.Spreadsheet {
+  margin: 1em;
+  --border: 1px solid #ddd;
+}
+
+.Spreadsheet .row input.col {
+  width: 60px;
+  height: 20px;
+  margin: 0;
+  padding: 0;
+  outline: none;
+  border: none;
+  box-sizing: border-box;
+  border: var(--border);
+  border-top: none;
+  border-left: none;
+}
+
+.Spreadsheet .row:first-child input.col {
+  border-top: var(--border);
+}
+
+.Spreadsheet .row input.col:first-child {
+  border-left: var(--border);
+}
+
+.Spreadsheet .row input.col.isFocused {
+  background-color: #fdfdda;
+}
+
+.Spreadsheet .row input.col.formulaError {
+  background-color: #f9abab;
+}
