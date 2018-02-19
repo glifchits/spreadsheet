@@ -31,16 +31,20 @@ export class Spreadsheet extends React.Component {
   };
 
   evalFormula = rawFormula => {
-    const matches = rawFormula.match(/([A-Z]+[0-9]+)/g) || [];
-    const replacedFormula = matches.reduce((formula, cellID) => {
-      let cellValue = this.dereferenceCell(cellID);
-      if (cellValue[0] === "=") {
-        cellValue = this.evalFormula(cellValue.slice(1)).value;
-      }
-      return formula.replace(cellID, cellValue);
-    }, rawFormula);
-
     try {
+      const matches = rawFormula.match(/([A-Z]+[0-9]+)/g) || [];
+      const replacedFormula = matches.reduce((formula, cellID) => {
+        let cellValue = this.dereferenceCell(cellID);
+        if (cellValue[0] === "=") {
+          const formula = cellValue.slice(1);
+          if (formula.indexOf(cellID) >= 0) {
+            throw new Error(`${cellID} contains a circular reference`);
+          }
+          cellValue = this.evalFormula(formula).value;
+        }
+        return formula.replace(cellID, cellValue);
+      }, rawFormula);
+
       return {
         computed: true,
         value: eval(replacedFormula) // eslint-disable-line no-eval
