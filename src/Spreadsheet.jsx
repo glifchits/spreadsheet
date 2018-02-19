@@ -18,21 +18,37 @@ export class Spreadsheet extends React.Component {
     this.state = { sheet, focused: null };
   }
 
-  evalFormula = formula => {
-    const match = formula.match(/([A-Z]+)([0-9]+)/);
+  dereferenceCell = cellID => {
+    const match = cellID.match(/([A-Z]+)([0-9]+)/);
     if (match) {
       const rowID = match[1];
       const colID = match[2];
-
       const rowNum = rowID.charCodeAt(0) - 65;
       const colNum = parseInt(colID, 10) - 1;
-      const raw = this.state.sheet[rowNum][colNum];
-      if (raw[0] === "=") {
-        return this.evalFormula(raw.slice(1));
-      }
-      return raw;
+      return this.state.sheet[rowNum][colNum];
     }
     return null;
+  };
+
+  evalFormula = rawFormula => {
+    const matches = rawFormula.match(/([A-Z]+[0-9]+)/g) || [];
+    const replacedFormula = matches.reduce((formula, cellID) => {
+      let cellValue = this.dereferenceCell(cellID);
+      if (cellValue[0] === "=") {
+        cellValue = this.evalFormula(cellValue.slice(1)).value;
+      }
+      return formula.replace(cellID, cellValue);
+    }, rawFormula);
+
+    try {
+      return {
+        computed: true,
+        value: eval(replacedFormula) // eslint-disable-line no-eval
+      };
+    } catch (e) {
+      console.warn(e);
+      return { error: true, value: e.toString() };
+    }
   };
 
   getValue = (row, col, doEval = true) => {
@@ -40,7 +56,7 @@ export class Spreadsheet extends React.Component {
     if (doEval && raw[0] === "=") {
       return this.evalFormula(raw.slice(1));
     } else {
-      return raw;
+      return { raw: true, value: raw };
     }
   };
 
@@ -69,11 +85,11 @@ export class Spreadsheet extends React.Component {
           <input
             className={classNames("col", {
               isFocused: isFocused,
-              formulaError: shouldEval && cellValue === null
+              formulaError: !!cellValue.error
             })}
             type="text"
             key={`${i}-${j}`}
-            value={cellValue || ""}
+            value={cellValue.value}
             onFocus={this.focusCell(i, j)}
             onChange={this.setValue(i, j)}
           />
