@@ -30,24 +30,30 @@ export class Spreadsheet extends React.Component {
     return null;
   };
 
-  evalFormula = rawFormula => {
+  evalFormula = (rawFormula, refList = []) => {
     try {
       const matches = rawFormula.match(/([A-Z]+[0-9]+)/g) || [];
-      const replacedFormula = matches.reduce((formula, cellID) => {
+      let formula = rawFormula;
+      for (const cellID of matches) {
         let cellValue = this.dereferenceCell(cellID);
-        if (cellValue[0] === "=") {
-          const formula = cellValue.slice(1);
-          if (formula.indexOf(cellID) >= 0) {
-            throw new Error(`${cellID} contains a circular reference`);
-          }
-          cellValue = this.evalFormula(formula).value;
+        if (refList.indexOf(cellID) >= 0) {
+          throw new Error(`${cellID} contains a circular reference`);
         }
-        return formula.replace(cellID, cellValue);
-      }, rawFormula);
+        if (cellValue[0] === "=") {
+          const newRefList = [...refList, cellID];
+          const ev = this.evalFormula(cellValue.slice(1), newRefList);
+          if (ev.error) {
+            return ev;
+          } else {
+            cellValue = ev.value;
+          }
+        }
+        formula = formula.replace(cellID, cellValue);
+      }
 
       return {
         computed: true,
-        value: eval(replacedFormula) // eslint-disable-line no-eval
+        value: eval(formula) // eslint-disable-line no-eval
       };
     } catch (e) {
       console.warn(e);
